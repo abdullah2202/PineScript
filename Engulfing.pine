@@ -1,0 +1,37 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © abdullah2202
+
+//@version=5
+
+indicator(title="Engulfing", shorttitle="Engulfing", overlay=true)
+
+// Identify engulfing candles
+bullishEC = close > open[1] and close[1] < open[1] and close[2] < open[2] and close[3] < open[3]
+bearishEC = close < open[1] and close[1] > open[1] and close[2] > open[2] and close[3] > open[3]
+
+// Get candle size - If engulfing candle is greater than 2x, dont do.
+BullishCZ = ((close - open) / (open[1] - close[1])) < 3
+BearishCZ = ((open - close) / (close[1] - open[1])) < 3
+
+// Calculate Wicks
+bullishWickUp = high - close
+bullishWickDown = open - low
+bullishBody = close - open
+bearishWickUp = high - open
+bearishWickDown = close - low
+bearishBody = open - close
+
+// Make sure wicks are smaller than body of candle
+bullishWicks = (bullishWickUp < bullishBody) and (bullishWickDown < bullishBody) and (bullishWickUp > 0) and (bullishWickDown > 0)
+bearishWicks = (bearishWickUp < bearishBody) and (bearishWickDown < bearishBody) and (bearishWickUp > 0) and (bearishWickDown > 0)
+
+
+bullishSignal = BullishCZ and bullishEC and bullishWicks
+bearishSignal = BearishCZ and bearishEC and bearishWicks
+
+// Plot signals to chart
+plotshape(bullishSignal, title="Long", location=location.belowbar, color=color.green, style=shape.triangleup, text="Long")
+plotshape(bearishSignal, title="Short", location=location.abovebar, color=color.red, style=shape.triangledown, text="Short")
+
+// Send out an alert if this candle meets our conditions
+alertcondition(bearishSignal or bullishSignal, title="Engulfing Trade Alert!", message="Engulfing Signal for XXX")
