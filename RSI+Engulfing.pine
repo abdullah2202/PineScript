@@ -1,25 +1,65 @@
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © abdullah2202
-// From - https://zenandtheartoftrading.com/pinescript/how-to-detect-candle-patterns/
 
 //@version=5
 
-indicator(title="Lesson 6", shorttitle="RSI Swing Signals", overlay=true)
-// Get user input 
-rsiSource = input(close, "RSI Source")
-rsiLength = input(14, "RSI Length")
-rsiOverbought = input(70, "RSI Overbought Level")
-rsiOversold = input(30, "RSI Oversold Level")
-// Get RSI value
-rsiValue = ta.rsi(rsiSource, rsiLength)
-rsiOB = rsiValue >= rsiOverbought
-rsiOS = rsiValue <= rsiOversold
+indicator(title="Engulfing", shorttitle="E", overlay=true)
+
+prevCandles = input.int(2, title="No. Previous Candles")
+
 // Identify engulfing candles
-bullishEC = close > open[1] and close[1] < open[1]
-bearishEC = close < open[1] and close[1] > open[1]
-tradeSignal = ((rsiOS or rsiOS[1]) and bullishEC) or ((rsiOB or rsiOB[1]) and bearishEC)
+
+atr = ta.sma(ta.tr(true), 14)
+
+bullishFlip = true
+bearishFlip = true
+
+for i=1 to prevCandles
+    if close[i] < open[i] and bullishFlip
+        bullishFlip := true
+    else
+        bullishFlip := false
+    
+    if close[i] > open[i] and bearishFlip
+        bearishFlip := true
+    else
+        bearishFlip := false
+
+
+bullishEC = close > open[1] and bullishFlip
+bearishEC = close < open[1] and bearishFlip
+
+//bullishEC = close > open[1] and close[1] < open[1] and close[2] < open[2] and close[3] < open[3]
+//bearishEC = close < open[1] and close[1] > open[1] and close[2] > open[2] and close[3] > open[3]
+
+// Get candle size - If engulfing candle is greater than 2x, dont do.
+//BullishCZ = ((close - open) / (open[1] - close[1])) < 3
+//BearishCZ = ((open - close) / (close[1] - open[1])) < 3
+
+
+// Get Candle Size against ATR
+candleATR = (high - low) > atr
+
+
+// Calculate Wicks
+bullishWickUp = high - close
+bullishWickDown = open - low
+bullishBody = close - open
+bearishWickUp = high - open
+bearishWickDown = close - low
+bearishBody = open - close
+
+// Make sure wicks are smaller than body of candle
+bullishWicks = (bullishWickUp < bullishBody) and (bullishWickUp > 0) and (bullishWickDown > 0) 
+bearishWicks = (bearishWickDown < bearishBody) and (bearishWickDown > 0) and (bullishWickUp > 0) 
+
+
+bullishSignal =  bullishEC and candleATR
+bearishSignal = bearishEC and candleATR
+
 // Plot signals to chart
-plotshape(tradeSignal and bullishEC, title="Long", location=location.belowbar, color=color.green, style=shape.triangleup, text="Long")
-plotshape(tradeSignal and bearishEC, title="Short", location=location.abovebar, color=color.red, style=shape.triangledown, text="Short")
+plotshape(bullishSignal, title="Long", location=location.belowbar, color=color.green, style=shape.triangleup, text="Long")
+plotshape(bearishSignal, title="Short", location=location.abovebar, color=color.red, style=shape.triangledown, text="Short")
+
 // Send out an alert if this candle meets our conditions
-alertcondition(tradeSignal, title="RSI Trade Alert!", message="RSI Swing Signal for XXX")
+alertcondition(bearishSignal or bullishSignal, title="Engulfing Trade Alert!", message="Engulfing Signal for XXX")

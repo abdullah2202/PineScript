@@ -1,0 +1,17 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © abdullah2202
+
+//@version=5
+
+indicator(title="Support & Resistance", shorttitle="S 'n' R", overlay=true)
+
+inpNumberOfCandles = input.int(100, title="No. Previous Candles to look at")
+inpSensitivity = input.int(2, title="Sensitivity")
+
+
+
+
+
+
+// Send out an alert if this candle meets our conditions
+//alertcondition(bearishSignal or bullishSignal, title="Engulfing Trade Alert!", message="Engulfing Signal for XXX")
